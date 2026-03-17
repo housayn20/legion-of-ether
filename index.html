@@ -1,64 +1,189 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legion of Ether</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Legion of Ether | جيش الإيثر</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
-        body { background: #0a0a0b; color: white; user-select: none; font-family: sans-serif; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .active-tab { color: #fbbf24; border-top: 2px solid #fbbf24; }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+        body { 
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%); 
+            color: white; font-family: 'Cairo', sans-serif; overflow: hidden; touch-action: manipulation;
+        }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .warrior-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .warrior-card:active { scale: 0.95; brightness: 1.2; }
+        .nav-btn { transition: all 0.2s; }
+        .nav-btn.active { color: #fbbf24; transform: translateY(-5px); }
+        .gold-glow { text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+        /* Animation لزيادة العملات */
+        .coin-pop { position: absolute; color: #fbbf24; font-weight: bold; pointer-events: none; animation: floatUp 0.8s ease-out forwards; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
     </style>
 </head>
-<body class="flex flex-col min-h-screen">
+<body class="h-screen flex flex-col">
 
-    <div class="sticky top-0 bg-[#161618] p-4 flex justify-between items-center border-b border-gray-800 z-50">
-        <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-black font-bold">L</div>
-            <span class="text-yellow-500 font-bold" id="balance-display">1,000 🪙</span>
-        </div>
-        <button class="bg-blue-600 px-4 py-1 rounded-full text-xs font-bold">Connect Wallet</button>
-    </div>
-
-    <main class="flex-grow p-4 pb-24" id="main-content">
-        <div id="home-section" class="text-center mt-10">
-            <h1 class="text-2xl font-bold mb-6">ساحة المحاربين ⚔️</h1>
-            <div id="tap-target" class="w-48 h-48 bg-[#161618] border-2 border-gray-800 rounded-full mx-auto flex items-center justify-center shadow-2xl active:scale-90 transition-transform cursor-pointer">
-                <span class="text-7xl">🛡️</span>
+    <header class="p-4 flex justify-between items-center glass z-50 sticky top-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-600 to-yellow-300 flex items-center justify-center shadow-lg border-2 border-yellow-400">
+                <span class="text-black font-black">L</span>
             </div>
-            <p class="mt-6 text-gray-500 italic">اضغط لجمع العملات وتطوير جيشك</p>
+            <div>
+                <p class="text-[10px] text-gray-400 leading-none">القائد</p>
+                <p class="font-bold text-sm" id="user-name">Loading...</p>
+            </div>
         </div>
-    </main>
+        <div class="glass px-4 py-2 rounded-2xl flex items-center gap-2">
+            <span class="text-yellow-400 font-bold gold-glow" id="balance">1,000</span>
+            <span class="text-xs">🪙</span>
+        </div>
+    </header>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-[#161618] border-t border-gray-800 overflow-x-auto flex gap-6 p-3 scrollbar-hide">
-        <button onclick="showTab('home')" class="flex flex-col items-center min-w-[60px] active-tab"><span>🏠</span><span class="text-[10px]">الرئيسية</span></button>
-        <button onclick="showTab('warriors')" class="flex flex-col items-center min-w-[60px]"><span>⚔️</span><span class="text-[10px]">المحاربين</span></button>
-        <button onclick="showTab('clans')" class="flex flex-col items-center min-w-[60px]"><span>🛡️</span><span class="text-[10px]">العشائر</span></button>
-        <button onclick="showTab('tasks')" class="flex flex-col items-center min-w-[60px]"><span>📜</span><span class="text-[10px]">المهام</span></button>
-        <button onclick="showTab('mining')" class="flex flex-col items-center min-w-[60px]"><span>⛏️</span><span class="text-[10px]">التعدين</span></button>
-        <button onclick="showTab('market')" class="flex flex-col items-center min-w-[60px]"><span>🛒</span><span class="text-[10px]">المتجر</span></button>
-        <button onclick="showTab('wallet')" class="flex flex-col items-center min-w-[60px]"><span>💎</span><span class="text-[10px]">المحفظة</span></button>
-        </nav>
+    <main class="flex-grow overflow-y-auto p-4 pb-32" id="app-content">
+        </main>
+
+    <nav class="fixed bottom-4 left-4 right-4 h-20 glass rounded-3xl flex justify-around items-center px-2 z-50 border border-white/20 shadow-2xl overflow-x-auto no-scrollbar">
+        <button onclick="changeTab('home')" class="nav-btn flex flex-col items-center min-w-[60px]" id="nav-home">
+            <span class="text-2xl">🏠</span><span class="text-[10px]">الرئيسية</span>
+        </button>
+        <button onclick="changeTab('shop')" class="nav-btn flex flex-col items-center min-w-[60px]" id="nav-shop">
+            <span class="text-2xl">⚔️</span><span class="text-[10px]">الجيش</span>
+        </button>
+        <button onclick="changeTab('tasks')" class="nav-btn flex flex-col items-center min-w-[60px]" id="nav-tasks">
+            <span class="text-2xl">📜</span><span class="text-[10px]">المهام</span>
+        </button>
+        <button onclick="changeTab('clans')" class="nav-btn flex flex-col items-center min-w-[60px]" id="nav-clans">
+            <span class="text-2xl">🛡️</span><span class="text-[10px]">العشائر</span>
+        </button>
+        <button onclick="changeTab('wallet')" class="nav-btn flex flex-col items-center min-w-[60px]" id="nav-wallet">
+            <span class="text-2xl">💎</span><span class="text-[10px]">المحفظة</span>
+        </button>
+    </nav>
 
     <script>
-        let balance = 1000;
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        // نظام الضغط
-        document.getElementById('tap-target').onclick = () => {
-            balance += 1;
-            document.getElementById('balance-display').innerText = balance.toLocaleString() + " 🪙";
-            tg.HapticFeedback.impactOccurred('light');
+        let state = {
+            balance: 1000,
+            income: 0,
+            warriors: [],
+            currentTab: 'home'
         };
 
-        function showTab(tabName) {
-            // كود تبديل الأقسام (بسيط)
-            tg.showAlert("القسم " + tabName + " قيد التجهيز!");
+        const warriorsData = [
+            { id: 1, name: "مقاتل السيف", price: 500, income: 5, img: "🥷" },
+            { id: 2, name: "الرامي الملكي", price: 2500, income: 30, img: "🏹" },
+            { id: 3, name: "غول الجبل", price: 10000, income: 150, img: "👹" }
+        ];
+
+        function changeTab(tab) {
+            state.currentTab = tab;
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`nav-${tab}`).classList.add('active');
+            render();
         }
+
+        function render() {
+            const content = document.getElementById('app-content');
+            if (state.currentTab === 'home') {
+                content.innerHTML = `
+                    <div class="flex flex-col items-center justify-center mt-10 animate__animated animate__fadeIn">
+                        <div class="relative w-64 h-64 flex items-center justify-center bg-white/5 rounded-full border-4 border-yellow-500/20 shadow-[0_0_50px_rgba(251,191,36,0.1)] active:scale-90 transition-transform cursor-pointer" id="tap-circle">
+                            <span class="text-[120px] drop-shadow-2xl">🛡️</span>
+                        </div>
+                        <p class="mt-8 text-yellow-500 font-bold animate-pulse">اضغط للدفاع وجمع الذهب!</p>
+                        <div class="mt-4 glass p-4 rounded-xl text-center w-full">
+                            <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">الربح السلبي</p>
+                            <p class="text-xl font-bold text-green-400">+${state.income.toFixed(1)} <span class="text-xs">عملة/ثانية</span></p>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('tap-circle').onclick = handleTap;
+            } else if (state.currentTab === 'shop') {
+                content.innerHTML = `
+                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2">🛒 سوق التجنيد</h2>
+                    <div class="grid gap-4">
+                        ${warriorsData.map(w => `
+                            <div class="warrior-card glass p-4 rounded-3xl flex justify-between items-center animate__animated animate__slideInUp">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-4xl">${w.img}</div>
+                                    <div>
+                                        <p class="font-bold text-lg">${w.name}</p>
+                                        <p class="text-xs text-green-400">+${w.income}/ثانية</p>
+                                    </div>
+                                </div>
+                                <button onclick="buyWarrior(${w.id})" class="bg-yellow-600 hover:bg-yellow-500 px-6 py-2 rounded-2xl font-bold text-sm shadow-lg active:scale-90 transition-all">
+                                    ${w.price.toLocaleString()}
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (state.currentTab === 'tasks') {
+                content.innerHTML = `
+                    <h2 class="text-xl font-bold mb-6">📜 المهام اليومية</h2>
+                    <div class="grid gap-3">
+                        <div class="glass p-4 rounded-2xl flex justify-between items-center border-r-4 border-blue-500">
+                            <div><p class="font-bold">اشترك في القناة</p><p class="text-xs text-yellow-500">+5000 🪙</p></div>
+                            <button onclick="tg.openTelegramLink('https://t.me/your_channel')" class="bg-blue-600 px-4 py-2 rounded-xl text-xs font-bold">انضمام</button>
+                        </div>
+                        <div class="glass p-4 rounded-2xl flex justify-between items-center border-r-4 border-green-500">
+                            <div><p class="font-bold">ادعُ 5 أصدقاء</p><p class="text-xs text-yellow-500">+10,000 🪙</p></div>
+                            <button class="bg-gray-700 px-4 py-2 rounded-xl text-xs font-bold">دعوة</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `<div class="flex items-center justify-center h-full text-gray-500 font-bold">قريباً.. نجهز الساحة 🔥</div>`;
+            }
+        }
+
+        function handleTap(e) {
+            state.balance += 1;
+            updateBalance();
+            tg.HapticFeedback.impactOccurred('medium');
+            
+            // تأثير خروج العملة
+            const coin = document.createElement('div');
+            coin.className = 'coin-pop';
+            coin.innerText = '+1';
+            coin.style.left = `${e.clientX}px`;
+            coin.style.top = `${e.clientY}px`;
+            document.body.appendChild(coin);
+            setTimeout(() => coin.remove(), 800);
+        }
+
+        function buyWarrior(id) {
+            const w = warriorsData.find(x => x.id === id);
+            if (state.balance >= w.price) {
+                state.balance -= w.price;
+                state.income += w.income / 10;
+                updateBalance();
+                tg.showConfirm(`تم تجنيد ${w.name}! جيشك أصبح أقوى.`);
+                render();
+            } else {
+                tg.showAlert("الذهب غير كافٍ!");
+            }
+        }
+
+        function updateBalance() {
+            document.getElementById('balance').innerText = Math.floor(state.balance).toLocaleString();
+        }
+
+        // تحديث الرصيد تلقائياً (Passive Income)
+        setInterval(() => {
+            state.balance += state.income;
+            updateBalance();
+        }, 1000);
+
+        // إعداد البداية
+        document.getElementById('user-name').innerText = tg.initDataUnsafe.user?.first_name || "المحارب";
+        changeTab('home');
     </script>
 </body>
 </html>
