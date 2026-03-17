@@ -3,273 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Legion of Ether | Pro Edition</title>
+    <title>X-Warriors: The Awakening</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Cairo:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Cairo:wght@400;700&display=swap');
         
         :root {
-            --primary-gold: #fbbf24;
-            --bg-dark: #050505;
-            --card-bg: #111111;
+            --neon-blue: #00f3ff;
+            --neon-purple: #bc13fe;
+            --neon-gold: #ffcf00;
         }
 
         body {
-            background-color: var(--bg-dark);
+            background: #050505;
             color: white;
             font-family: 'Cairo', sans-serif;
-            margin: 0;
             overflow: hidden;
             touch-action: none;
         }
 
-        .font-game { font-family: 'Orbitron', sans-serif; }
+        .font-cyber { font-family: 'Syncopate', sans-serif; }
 
-        .main-button-container {
-            perspective: 1000px;
+        .choice-card {
+            background: linear-gradient(145deg, #111, #050505);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .warrior-shield {
-            background: radial-gradient(circle, #222 0%, #000 100%);
-            box-shadow: 0 0 30px rgba(251, 191, 36, 0.1);
-            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 4px solid #1a1a1a;
+        .choice-card:hover {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
+            transform: translateY(-10px);
         }
 
-        .warrior-shield:active {
-            transform: scale(0.92) rotateX(10deg);
-            border-color: var(--primary-gold);
+        .character-img {
+            mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.1));
         }
 
-        .energy-bar-fill {
-            transition: width 0.3s ease;
-            background: linear-gradient(90deg, #fbbf24, #f59e0b);
-            box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+        .level-progress {
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            box-shadow: 0 0 15px var(--neon-blue);
         }
 
-        .nav-active {
-            color: var(--primary-gold) !important;
-            filter: drop-shadow(0 0 8px var(--primary-gold));
-        }
+        .stat-badge { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); }
 
-        .floating-text {
-            position: absolute;
-            pointer-events: none;
-            color: var(--primary-gold);
-            font-weight: bold;
-            font-family: 'Orbitron', sans-serif;
-            animation: float-up 0.7s ease-out forwards;
-            z-index: 100;
-        }
-
-        @keyframes float-up {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-150px) scale(1.5); opacity: 0; }
-        }
-
-        .glass-morphism {
-            background: rgba(20, 20, 20, 0.8);
-            backdrop-filter: blur(15px);
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-
-        ::-webkit-scrollbar { display: none; }
+        /* Animations */
+        .glow-text { text-shadow: 0 0 10px currentColor; }
+        .tap-effect { position: absolute; pointer-events: none; animation: tapAnim 0.6s ease-out forwards; font-weight: bold; }
+        @keyframes tapAnim { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-120px) scale(1.5); } }
     </style>
 </head>
-<body class="h-screen flex flex-col select-none">
+<body class="h-screen flex flex-col">
 
-    <div class="p-4 flex justify-between items-center z-50">
-        <div class="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/10">
-            <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-black font-bold shadow-lg">L</div>
-            <div>
-                <p class="text-[10px] text-gray-500 font-bold uppercase">Level 1: Recruit</p>
-                <div class="w-20 h-1 bg-gray-800 rounded-full mt-1">
-                    <div class="bg-blue-500 h-full rounded-full" style="width: 30%"></div>
-                </div>
-            </div>
+    <div id="game-container" class="relative w-full h-full">
         </div>
-        <div class="text-right">
-            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Balance</p>
-            <p class="text-2xl font-game font-bold text-yellow-500 gold-glow" id="balance">1,000</p>
-        </div>
-    </div>
-
-    <main id="screen-content" class="flex-grow flex flex-col items-center justify-center relative overflow-y-auto px-4 pb-24">
-        </main>
-
-    <div class="fixed bottom-0 left-0 right-0 z-[100]">
-        <div class="px-6 mb-2">
-            <div class="flex justify-between text-[10px] font-bold mb-1 px-1">
-                <span class="flex items-center gap-1">⚡ <span id="energy-text">1000/1000</span></span>
-                <span class="text-gray-500 uppercase">Energy</span>
-            </div>
-            <div class="w-full h-2 bg-gray-900 rounded-full overflow-hidden border border-white/5">
-                <div id="energy-bar" class="energy-bar-fill h-full w-full"></div>
-            </div>
-        </div>
-
-        <nav class="glass-morphism h-20 flex justify-around items-center px-4 rounded-t-3xl">
-            <button onclick="router('home')" class="flex flex-col items-center gap-1 transition-all" id="nav-home">
-                <span class="text-xl">🏠</span><span class="text-[9px] font-bold uppercase">Home</span>
-            </button>
-            <button onclick="router('fighters')" class="flex flex-col items-center gap-1 text-gray-500" id="nav-fighters">
-                <span class="text-xl">⚔️</span><span class="text-[9px] font-bold uppercase">Fighters</span>
-            </button>
-            <button onclick="router('clans')" class="flex flex-col items-center gap-1 text-gray-500" id="nav-clans">
-                <span class="text-xl">🛡️</span><span class="text-[9px] font-bold uppercase">Clans</span>
-            </button>
-            <button onclick="router('tasks')" class="flex flex-col items-center gap-1 text-gray-500" id="nav-tasks">
-                <span class="text-xl">📜</span><span class="text-[9px] font-bold uppercase">Tasks</span>
-            </button>
-            <button onclick="router('wallet')" class="flex flex-col items-center gap-1 text-gray-500" id="nav-wallet">
-                <span class="text-xl">💎</span><span class="text-[9px] font-bold uppercase">Wallet</span>
-            </button>
-        </nav>
-    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
-        tg.enableClosingConfirmation();
 
-        // Game State
-        let game = {
-            balance: 1000.0,
+        let user = {
+            hasChosen: false,
+            race: '',
+            level: 1,
+            balance: 0,
             energy: 1000,
             maxEnergy: 1000,
-            tapValue: 1,
-            passiveIncome: 0.0,
-            currentScreen: 'home'
+            xp: 0,
+            maxXp: 100
         };
 
-        const warriors = [
-            { id: 1, name: "Neon Shadow", price: 500, income: 0.5, icon: "👤" },
-            { id: 2, name: "Cyber Knight", price: 5000, income: 5, icon: "🤖" },
-            { id: 3, name: "Ether Drake", price: 50000, income: 60, icon: "🐲" }
-        ];
+        const races = {
+            dogs: {
+                name: "فصيل الكلاب (War-Hounds)",
+                desc: "مختصون في الهجوم. كل ضغطة تعطي قوة مضاعفة.",
+                ability: "هجوم كاسح",
+                color: "#ff4d4d",
+                img: "https://cdn-icons-png.flaticon.com/512/616/616408.png" // مثال لصور مستوى 1
+            },
+            cats: {
+                name: "فصيل القطط (Cyber-Cats)",
+                desc: "ملوك التعدين. أرباح سلبية عالية جداً حتى وأنت نائم.",
+                ability: "تعدين شبحي",
+                color: "#00f3ff",
+                img: "https://cdn-icons-png.flaticon.com/512/616/616430.png"
+            },
+            aliens: {
+                name: "الكائنات العلوية (Zenith)",
+                desc: "أسياد العشائر. بونوس ضخم عند دعوة الأصدقاء والحروب.",
+                ability: "سيطرة ذهنية",
+                color: "#bc13fe",
+                img: "https://cdn-icons-png.flaticon.com/512/616/616421.png"
+            }
+        };
 
-        function router(screen) {
-            game.currentScreen = screen;
-            const content = document.getElementById('screen-content');
-            
-            // Update Nav UI
-            document.querySelectorAll('nav button').forEach(b => b.classList.add('text-gray-500'));
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('nav-active'));
-            document.getElementById(`nav-${screen}`).classList.add('nav-active');
-            document.getElementById(`nav-${screen}`).classList.remove('text-gray-500');
+        function showOnboarding() {
+            const container = document.getElementById('game-container');
+            container.innerHTML = `
+                <div class="p-6 h-full flex flex-col items-center justify-center animate__animated animate__fadeIn">
+                    <h1 class="font-cyber text-2xl text-center mb-2 glow-text" style="color: #fff">X-WARRIORS</h1>
+                    <p class="text-gray-500 text-sm mb-8">اختر فصيلك بعناية، لا يمكن التراجع</p>
+                    
+                    <div class="space-y-4 w-full">
+                        ${Object.entries(races).map(([id, r]) => `
+                            <div onclick="selectRace('${id}')" class="choice-card p-4 rounded-3xl flex items-center gap-4 cursor-pointer">
+                                <img src="${r.img}" class="w-20 h-20 object-contain character-img">
+                                <div>
+                                    <h3 class="font-bold" style="color: ${r.color}">${r.name}</h3>
+                                    <p class="text-[10px] text-gray-400">${r.desc}</p>
+                                    <span class="text-[9px] bg-white/5 px-2 py-0.5 rounded mt-2 inline-block border border-white/10 italic">القدرة: ${r.ability}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
 
-            if (screen === 'home') {
-                content.innerHTML = `
-                    <div class="animate__animated animate__zoomIn text-center flex flex-col items-center">
-                        <div class="mb-4 glass-morphism px-6 py-2 rounded-full border border-yellow-500/20">
-                            <p class="text-xs text-yellow-500 font-bold uppercase tracking-widest">Profit per hour: <span class="text-white">+${(game.passiveIncome * 3600).toFixed(0)}</span></p>
+        function selectRace(raceId) {
+            user.hasChosen = true;
+            user.race = raceId;
+            tg.HapticFeedback.notificationOccurred('success');
+            showMainGame();
+        }
+
+        function showMainGame() {
+            const race = races[user.race];
+            const container = document.getElementById('game-container');
+            container.innerHTML = `
+                <div class="p-4 flex justify-between items-center bg-black/50 backdrop-blur-xl border-b border-white/5 sticky top-0 z-50">
+                    <div class="flex items-center gap-2">
+                        <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 p-1">
+                            <img src="${race.img}" class="w-full h-full object-contain">
                         </div>
-                        <div class="main-button-container relative mt-10">
-                            <div id="clicker" class="warrior-shield w-64 h-64 rounded-full flex items-center justify-center cursor-pointer relative overflow-hidden">
-                                <span class="text-[140px] drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">⚔️</span>
+                        <div>
+                            <p class="text-[10px] font-bold" style="color: ${race.color}">LVL ${user.level} ${user.race.toUpperCase()}</p>
+                            <div class="w-24 h-1.5 bg-gray-800 rounded-full mt-0.5">
+                                <div class="level-progress h-full rounded-full" style="width: ${(user.xp/user.maxXp)*100}%"></div>
                             </div>
                         </div>
                     </div>
-                `;
-                document.getElementById('clicker').addEventListener('touchstart', handleTap);
-            } else if (screen === 'fighters') {
-                content.innerHTML = `
-                    <div class="w-full animate__animated animate__fadeInUp mt-4">
-                        <h2 class="text-xl font-bold mb-6 flex items-center gap-2 font-game">UPGRADE ARMY</h2>
-                        <div class="grid gap-3">
-                            ${warriors.map(w => `
-                                <div onclick="buyUpgrade(${w.id})" class="bg-[#111] p-4 rounded-3xl border border-white/5 flex justify-between items-center active:scale-95 transition-all">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-3xl border border-white/10">${w.icon}</div>
-                                        <div>
-                                            <p class="font-bold text-sm">${w.name}</p>
-                                            <p class="text-[10px] text-green-500 font-bold uppercase tracking-tighter">Profit +${w.income}/sec</p>
-                                        </div>
-                                    </div>
-                                    <div class="bg-white/5 px-4 py-2 rounded-2xl border border-white/10">
-                                        <p class="text-xs font-game text-yellow-500 font-bold">${w.price.toLocaleString()}</p>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">Gold Reserves</p>
+                        <p class="text-xl font-cyber text-white glow-text" id="balance-val">${user.balance.toLocaleString()}</p>
                     </div>
-                `;
-            } else if (screen === 'tasks') {
-                content.innerHTML = `
-                    <div class="w-full animate__animated animate__fadeIn">
-                        <h2 class="text-xl font-bold mb-6 font-game">QUESTS</h2>
-                        <div class="bg-[#111] p-6 rounded-3xl border border-yellow-500/20 text-center mb-4">
-                            <p class="text-sm mb-4 text-gray-400">Join our channel to unlock rewards!</p>
-                            <button onclick="tg.openTelegramLink('https://t.me/YOUR_LINK')" class="w-full bg-yellow-500 text-black font-bold py-3 rounded-2xl active:scale-95 transition-all">JOIN CHANNEL</button>
-                        </div>
+                </div>
+
+                <div class="flex flex-col items-center justify-center h-[70%] relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-${user.race === 'cats' ? 'blue' : 'red'}-900/10 to-transparent pointer-events-none"></div>
+                    
+                    <div id="tap-zone" class="relative z-10 active:scale-95 transition-transform duration-75 cursor-pointer">
+                        <img src="${race.img}" id="hero-img" class="w-64 h-64 object-contain character-img animate__animated animate__pulse animate__infinite animate__slow">
                     </div>
-                `;
-            } else {
-                content.innerHTML = `<div class="mt-20 text-gray-600 font-game uppercase tracking-widest animate-pulse">Coming Soon</div>`;
-            }
+
+                    <div class="absolute bottom-10 w-full px-10">
+                         <div class="flex justify-between text-[10px] mb-1 font-bold">
+                            <span>⚡ ENERGY</span>
+                            <span id="energy-val">${user.energy}/${user.maxEnergy}</span>
+                         </div>
+                         <div class="w-full h-3 bg-white/5 rounded-full overflow-hidden border border-white/10">
+                            <div id="energy-fill" class="h-full bg-white transition-all" style="width: 100%"></div>
+                         </div>
+                    </div>
+                </div>
+
+                <nav class="fixed bottom-6 left-6 right-6 h-20 bg-white/5 backdrop-blur-2xl rounded-[35px] border border-white/10 flex justify-around items-center px-4 shadow-2xl">
+                    <button class="flex flex-col items-center gap-1 text-white"><span class="text-xl">🏠</span><span class="text-[8px] font-bold">WARZONE</span></button>
+                    <button class="flex flex-col items-center gap-1 text-gray-500"><span class="text-xl">⚔️</span><span class="text-[8px] font-bold">UPGRADE</span></button>
+                    <button class="flex flex-col items-center gap-1 text-gray-500"><span class="text-xl">🛡️</span><span class="text-[8px] font-bold">CLANS</span></button>
+                    <button class="flex flex-col items-center gap-1 text-gray-500"><span class="text-xl">📜</span><span class="text-[8px] font-bold">TASKS</span></button>
+                </nav>
+            `;
+
+            document.getElementById('tap-zone').addEventListener('touchstart', (e) => handleTap(e));
         }
 
         function handleTap(e) {
-            if (game.energy <= 0) {
-                tg.HapticFeedback.notificationOccurred('error');
-                return;
-            }
-
-            const touch = e.touches[0];
-            game.balance += game.tapValue;
-            game.energy -= 1;
+            if (user.energy <= 0) return;
             
+            const touch = e.touches[0];
+            user.balance += (user.race === 'dogs' ? 2 : 1);
+            user.xp += 1;
+            user.energy -= 2;
+
+            if(user.xp >= user.maxXp) levelUp();
+
             updateUI();
-            createFloatingText(touch.clientX, touch.clientY);
-            tg.HapticFeedback.impactOccurred('medium');
+            spawnCoin(touch.clientX, touch.clientY);
+            tg.HapticFeedback.impactOccurred('light');
         }
 
-        function createFloatingText(x, y) {
+        function levelUp() {
+            user.level++;
+            user.xp = 0;
+            user.maxXp *= 2;
+            tg.showAlert(`تهانينا! ارتقيت للمستوى ${user.level}. شكلك أصبح أكثر هيبة وقوتك تضاعفت!`);
+            // هنا تقدر تبدل user.img على حساب المستوى
+        }
+
+        function spawnCoin(x, y) {
             const el = document.createElement('div');
-            el.className = 'floating-text';
-            el.innerText = `+${game.tapValue}`;
+            el.className = 'tap-effect font-cyber text-lg';
             el.style.left = `${x}px`;
             el.style.top = `${y}px`;
+            el.style.color = races[user.race].color;
+            el.innerText = `+${user.race === 'dogs' ? '2' : '1'}`;
             document.body.appendChild(el);
-            setTimeout(() => el.remove(), 700);
-        }
-
-        function buyUpgrade(id) {
-            const w = warriors.find(x => x.id === id);
-            if (game.balance >= w.price) {
-                game.balance -= w.price;
-                game.passiveIncome += w.income;
-                tg.HapticFeedback.notificationOccurred('success');
-                router('fighters');
-                updateUI();
-            } else {
-                tg.showAlert("Not enough gold, Warrior!");
-            }
+            setTimeout(() => el.remove(), 600);
         }
 
         function updateUI() {
-            document.getElementById('balance').innerText = Math.floor(game.balance).toLocaleString();
-            document.getElementById('energy-text').innerText = `${game.energy}/${game.maxEnergy}`;
-            document.getElementById('energy-bar').style.width = `${(game.energy / game.maxEnergy) * 100}%`;
+            document.getElementById('balance-val').innerText = Math.floor(user.balance).toLocaleString();
+            document.getElementById('energy-val').innerText = `${user.energy}/${user.maxEnergy}`;
+            document.getElementById('energy-fill').style.width = `${(user.energy/user.maxEnergy)*100}%`;
         }
 
-        // Loops
+        // Energy Recovery
         setInterval(() => {
-            // Passive Income
-            game.balance += (game.passiveIncome / 10);
-            
-            // Energy Regen
-            if (game.energy < game.maxEnergy) {
-                game.energy += 1;
+            if (user.energy < user.maxEnergy) {
+                user.energy += 1;
+                updateUI();
             }
-            updateUI();
-        }, 100);
+        }, 1000);
 
-        // Init
-        router('home');
+        showOnboarding();
     </script>
 </body>
 </html>
