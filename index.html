@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legion of Ether</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0a0a0b; color: white; user-select: none; font-family: sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .active-tab { color: #fbbf24; border-top: 2px solid #fbbf24; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <div class="sticky top-0 bg-[#161618] p-4 flex justify-between items-center border-b border-gray-800 z-50">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-black font-bold">L</div>
+            <span class="text-yellow-500 font-bold" id="balance-display">1,000 🪙</span>
+        </div>
+        <button class="bg-blue-600 px-4 py-1 rounded-full text-xs font-bold">Connect Wallet</button>
+    </div>
+
+    <main class="flex-grow p-4 pb-24" id="main-content">
+        <div id="home-section" class="text-center mt-10">
+            <h1 class="text-2xl font-bold mb-6">ساحة المحاربين ⚔️</h1>
+            <div id="tap-target" class="w-48 h-48 bg-[#161618] border-2 border-gray-800 rounded-full mx-auto flex items-center justify-center shadow-2xl active:scale-90 transition-transform cursor-pointer">
+                <span class="text-7xl">🛡️</span>
+            </div>
+            <p class="mt-6 text-gray-500 italic">اضغط لجمع العملات وتطوير جيشك</p>
+        </div>
+    </main>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-[#161618] border-t border-gray-800 overflow-x-auto flex gap-6 p-3 scrollbar-hide">
+        <button onclick="showTab('home')" class="flex flex-col items-center min-w-[60px] active-tab"><span>🏠</span><span class="text-[10px]">الرئيسية</span></button>
+        <button onclick="showTab('warriors')" class="flex flex-col items-center min-w-[60px]"><span>⚔️</span><span class="text-[10px]">المحاربين</span></button>
+        <button onclick="showTab('clans')" class="flex flex-col items-center min-w-[60px]"><span>🛡️</span><span class="text-[10px]">العشائر</span></button>
+        <button onclick="showTab('tasks')" class="flex flex-col items-center min-w-[60px]"><span>📜</span><span class="text-[10px]">المهام</span></button>
+        <button onclick="showTab('mining')" class="flex flex-col items-center min-w-[60px]"><span>⛏️</span><span class="text-[10px]">التعدين</span></button>
+        <button onclick="showTab('market')" class="flex flex-col items-center min-w-[60px]"><span>🛒</span><span class="text-[10px]">المتجر</span></button>
+        <button onclick="showTab('wallet')" class="flex flex-col items-center min-w-[60px]"><span>💎</span><span class="text-[10px]">المحفظة</span></button>
+        </nav>
+
+    <script>
+        let balance = 1000;
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // نظام الضغط
+        document.getElementById('tap-target').onclick = () => {
+            balance += 1;
+            document.getElementById('balance-display').innerText = balance.toLocaleString() + " 🪙";
+            tg.HapticFeedback.impactOccurred('light');
+        };
+
+        function showTab(tabName) {
+            // كود تبديل الأقسام (بسيط)
+            tg.showAlert("القسم " + tabName + " قيد التجهيز!");
+        }
+    </script>
+</body>
+</html>
