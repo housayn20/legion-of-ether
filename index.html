@@ -3,187 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Legion of Ether | جيش الإيثر</title>
+    <title>Legion of Ether | Pro Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-        body { 
-            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%); 
-            color: white; font-family: 'Cairo', sans-serif; overflow: hidden; touch-action: manipulation;
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Cairo:wght@400;700&display=swap');
+        
+        :root {
+            --primary-gold: #fbbf24;
+            --bg-dark: #050505;
+            --card-bg: #111111;
         }
-        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .warrior-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .warrior-card:active { scale: 0.95; brightness: 1.2; }
-        .nav-btn { transition: all 0.2s; }
-        .nav-btn.active { color: #fbbf24; transform: translateY(-5px); }
-        .gold-glow { text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
-        /* Animation لزيادة العملات */
-        .coin-pop { position: absolute; color: #fbbf24; font-weight: bold; pointer-events: none; animation: floatUp 0.8s ease-out forwards; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Cairo', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .font-game { font-family: 'Orbitron', sans-serif; }
+
+        .main-button-container {
+            perspective: 1000px;
+        }
+
+        .warrior-shield {
+            background: radial-gradient(circle, #222 0%, #000 100%);
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.1);
+            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 4px solid #1a1a1a;
+        }
+
+        .warrior-shield:active {
+            transform: scale(0.92) rotateX(10deg);
+            border-color: var(--primary-gold);
+        }
+
+        .energy-bar-fill {
+            transition: width 0.3s ease;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+        }
+
+        .nav-active {
+            color: var(--primary-gold) !important;
+            filter: drop-shadow(0 0 8px var(--primary-gold));
+        }
+
+        .floating-text {
+            position: absolute;
+            pointer-events: none;
+            color: var(--primary-gold);
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+            animation: float-up 0.7s ease-out forwards;
+            z-index: 100;
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-150px) scale(1.5); opacity: 0; }
+        }
+
+        .glass-morphism {
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        ::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="h-screen flex flex-col">
+<body class="h-screen flex flex-col select-none">
 
-    <header class="p-4 flex justify-between items-center glass z-50 sticky top-0">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-600 to-yellow-300 flex items-center justify-center shadow-lg border-2 border-yellow-400">
-                <span class="text-black font-black">L</span>
-            </div>
+    <div class="p-4 flex justify-between items-center z-50">
+        <div class="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/10">
+            <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-black font-bold shadow-lg">L</div>
             <div>
-                <p class="text-[10px] text-gray-400 leading-none">القائد</p>
-                <p class="font-bold text-sm" id="user-name">Loading...</p>
+                <p class="text-[10px] text-gray-500 font-bold uppercase">Level 1: Recruit</p>
+                <div class="w-20 h-1 bg-gray-800 rounded-full mt-1">
+                    <div class="bg-blue-500 h-full rounded-full" style="width: 30%"></div>
+                </div>
             </div>
         </div>
-        <div class="glass px-4 py-2 rounded-2xl flex items-center gap-2">
-            <span class="text-yellow-400 font-bold gold-glow" id="balance">1,000</span>
-            <span class="text-xs">🪙</span>
+        <div class="text-right">
+            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Balance</p>
+            <p class="text-2xl font-game font-bold text-yellow-500 gold-glow" id="balance">1,000</p>
         </div>
-    </header>
+    </div>
 
-    <main class="flex-grow overflow-y-auto p-4 pb-32" id="app-content">
+    <main id="screen-content" class="flex-grow flex flex-col items-center justify-center relative overflow-y-auto px-4 pb-24">
         </main>
 
-    <nav class="fixed bottom-4 left-4 right-4 h-20 glass rounded-3xl flex justify-around items-center px-2 z-50 border border-white/20 shadow-2xl overflow-x-auto no-scrollbar">
-        <button onclick="changeTab('home')" class="nav-btn flex flex-col items-center min-w-[60px]" id="nav-home">
-            <span class="text-2xl">🏠</span><span class="text-[10px]">الرئيسية</span>
-        </button>
-        <button onclick="changeTab('shop')" class="nav-btn flex flex-col items-center min-w-[60px]" id="nav-shop">
-            <span class="text-2xl">⚔️</span><span class="text-[10px]">الجيش</span>
-        </button>
-        <button onclick="changeTab('tasks')" class="nav-btn flex flex-col items-center min-w-[60px]" id="nav-tasks">
-            <span class="text-2xl">📜</span><span class="text-[10px]">المهام</span>
-        </button>
-        <button onclick="changeTab('clans')" class="nav-btn flex flex-col items-center min-w-[60px]" id="nav-clans">
-            <span class="text-2xl">🛡️</span><span class="text-[10px]">العشائر</span>
-        </button>
-        <button onclick="changeTab('wallet')" class="nav-btn flex flex-col items-center min-w-[60px]" id="nav-wallet">
-            <span class="text-2xl">💎</span><span class="text-[10px]">المحفظة</span>
-        </button>
-    </nav>
+    <div class="fixed bottom-0 left-0 right-0 z-[100]">
+        <div class="px-6 mb-2">
+            <div class="flex justify-between text-[10px] font-bold mb-1 px-1">
+                <span class="flex items-center gap-1">⚡ <span id="energy-text">1000/1000</span></span>
+                <span class="text-gray-500 uppercase">Energy</span>
+            </div>
+            <div class="w-full h-2 bg-gray-900 rounded-full overflow-hidden border border-white/5">
+                <div id="energy-bar" class="energy-bar-fill h-full w-full"></div>
+            </div>
+        </div>
+
+        <nav class="glass-morphism h-20 flex justify-around items-center px-4 rounded-t-3xl">
+            <button onclick="router('home')" class="flex flex-col items-center gap-1 transition-all" id="nav-home">
+                <span class="text-xl">🏠</span><span class="text-[9px] font-bold uppercase">Home</span>
+            </button>
+            <button onclick="router('fighters')" class="flex flex-col items-center gap-1 text-gray-500" id="nav-fighters">
+                <span class="text-xl">⚔️</span><span class="text-[9px] font-bold uppercase">Fighters</span>
+            </button>
+            <button onclick="router('clans')" class="flex flex-col items-center gap-1 text-gray-500" id="nav-clans">
+                <span class="text-xl">🛡️</span><span class="text-[9px] font-bold uppercase">Clans</span>
+            </button>
+            <button onclick="router('tasks')" class="flex flex-col items-center gap-1 text-gray-500" id="nav-tasks">
+                <span class="text-xl">📜</span><span class="text-[9px] font-bold uppercase">Tasks</span>
+            </button>
+            <button onclick="router('wallet')" class="flex flex-col items-center gap-1 text-gray-500" id="nav-wallet">
+                <span class="text-xl">💎</span><span class="text-[9px] font-bold uppercase">Wallet</span>
+            </button>
+        </nav>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
+        tg.enableClosingConfirmation();
 
-        let state = {
-            balance: 1000,
-            income: 0,
-            warriors: [],
-            currentTab: 'home'
+        // Game State
+        let game = {
+            balance: 1000.0,
+            energy: 1000,
+            maxEnergy: 1000,
+            tapValue: 1,
+            passiveIncome: 0.0,
+            currentScreen: 'home'
         };
 
-        const warriorsData = [
-            { id: 1, name: "مقاتل السيف", price: 500, income: 5, img: "🥷" },
-            { id: 2, name: "الرامي الملكي", price: 2500, income: 30, img: "🏹" },
-            { id: 3, name: "غول الجبل", price: 10000, income: 150, img: "👹" }
+        const warriors = [
+            { id: 1, name: "Neon Shadow", price: 500, income: 0.5, icon: "👤" },
+            { id: 2, name: "Cyber Knight", price: 5000, income: 5, icon: "🤖" },
+            { id: 3, name: "Ether Drake", price: 50000, income: 60, icon: "🐲" }
         ];
 
-        function changeTab(tab) {
-            state.currentTab = tab;
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`nav-${tab}`).classList.add('active');
-            render();
-        }
+        function router(screen) {
+            game.currentScreen = screen;
+            const content = document.getElementById('screen-content');
+            
+            // Update Nav UI
+            document.querySelectorAll('nav button').forEach(b => b.classList.add('text-gray-500'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('nav-active'));
+            document.getElementById(`nav-${screen}`).classList.add('nav-active');
+            document.getElementById(`nav-${screen}`).classList.remove('text-gray-500');
 
-        function render() {
-            const content = document.getElementById('app-content');
-            if (state.currentTab === 'home') {
+            if (screen === 'home') {
                 content.innerHTML = `
-                    <div class="flex flex-col items-center justify-center mt-10 animate__animated animate__fadeIn">
-                        <div class="relative w-64 h-64 flex items-center justify-center bg-white/5 rounded-full border-4 border-yellow-500/20 shadow-[0_0_50px_rgba(251,191,36,0.1)] active:scale-90 transition-transform cursor-pointer" id="tap-circle">
-                            <span class="text-[120px] drop-shadow-2xl">🛡️</span>
+                    <div class="animate__animated animate__zoomIn text-center flex flex-col items-center">
+                        <div class="mb-4 glass-morphism px-6 py-2 rounded-full border border-yellow-500/20">
+                            <p class="text-xs text-yellow-500 font-bold uppercase tracking-widest">Profit per hour: <span class="text-white">+${(game.passiveIncome * 3600).toFixed(0)}</span></p>
                         </div>
-                        <p class="mt-8 text-yellow-500 font-bold animate-pulse">اضغط للدفاع وجمع الذهب!</p>
-                        <div class="mt-4 glass p-4 rounded-xl text-center w-full">
-                            <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">الربح السلبي</p>
-                            <p class="text-xl font-bold text-green-400">+${state.income.toFixed(1)} <span class="text-xs">عملة/ثانية</span></p>
+                        <div class="main-button-container relative mt-10">
+                            <div id="clicker" class="warrior-shield w-64 h-64 rounded-full flex items-center justify-center cursor-pointer relative overflow-hidden">
+                                <span class="text-[140px] drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">⚔️</span>
+                            </div>
                         </div>
                     </div>
                 `;
-                document.getElementById('tap-circle').onclick = handleTap;
-            } else if (state.currentTab === 'shop') {
+                document.getElementById('clicker').addEventListener('touchstart', handleTap);
+            } else if (screen === 'fighters') {
                 content.innerHTML = `
-                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2">🛒 سوق التجنيد</h2>
-                    <div class="grid gap-4">
-                        ${warriorsData.map(w => `
-                            <div class="warrior-card glass p-4 rounded-3xl flex justify-between items-center animate__animated animate__slideInUp">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-4xl">${w.img}</div>
-                                    <div>
-                                        <p class="font-bold text-lg">${w.name}</p>
-                                        <p class="text-xs text-green-400">+${w.income}/ثانية</p>
+                    <div class="w-full animate__animated animate__fadeInUp mt-4">
+                        <h2 class="text-xl font-bold mb-6 flex items-center gap-2 font-game">UPGRADE ARMY</h2>
+                        <div class="grid gap-3">
+                            ${warriors.map(w => `
+                                <div onclick="buyUpgrade(${w.id})" class="bg-[#111] p-4 rounded-3xl border border-white/5 flex justify-between items-center active:scale-95 transition-all">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-3xl border border-white/10">${w.icon}</div>
+                                        <div>
+                                            <p class="font-bold text-sm">${w.name}</p>
+                                            <p class="text-[10px] text-green-500 font-bold uppercase tracking-tighter">Profit +${w.income}/sec</p>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white/5 px-4 py-2 rounded-2xl border border-white/10">
+                                        <p class="text-xs font-game text-yellow-500 font-bold">${w.price.toLocaleString()}</p>
                                     </div>
                                 </div>
-                                <button onclick="buyWarrior(${w.id})" class="bg-yellow-600 hover:bg-yellow-500 px-6 py-2 rounded-2xl font-bold text-sm shadow-lg active:scale-90 transition-all">
-                                    ${w.price.toLocaleString()}
-                                </button>
-                            </div>
-                        `).join('')}
+                            `).join('')}
+                        </div>
                     </div>
                 `;
-            } else if (state.currentTab === 'tasks') {
+            } else if (screen === 'tasks') {
                 content.innerHTML = `
-                    <h2 class="text-xl font-bold mb-6">📜 المهام اليومية</h2>
-                    <div class="grid gap-3">
-                        <div class="glass p-4 rounded-2xl flex justify-between items-center border-r-4 border-blue-500">
-                            <div><p class="font-bold">اشترك في القناة</p><p class="text-xs text-yellow-500">+5000 🪙</p></div>
-                            <button onclick="tg.openTelegramLink('https://t.me/your_channel')" class="bg-blue-600 px-4 py-2 rounded-xl text-xs font-bold">انضمام</button>
-                        </div>
-                        <div class="glass p-4 rounded-2xl flex justify-between items-center border-r-4 border-green-500">
-                            <div><p class="font-bold">ادعُ 5 أصدقاء</p><p class="text-xs text-yellow-500">+10,000 🪙</p></div>
-                            <button class="bg-gray-700 px-4 py-2 rounded-xl text-xs font-bold">دعوة</button>
+                    <div class="w-full animate__animated animate__fadeIn">
+                        <h2 class="text-xl font-bold mb-6 font-game">QUESTS</h2>
+                        <div class="bg-[#111] p-6 rounded-3xl border border-yellow-500/20 text-center mb-4">
+                            <p class="text-sm mb-4 text-gray-400">Join our channel to unlock rewards!</p>
+                            <button onclick="tg.openTelegramLink('https://t.me/YOUR_LINK')" class="w-full bg-yellow-500 text-black font-bold py-3 rounded-2xl active:scale-95 transition-all">JOIN CHANNEL</button>
                         </div>
                     </div>
                 `;
             } else {
-                content.innerHTML = `<div class="flex items-center justify-center h-full text-gray-500 font-bold">قريباً.. نجهز الساحة 🔥</div>`;
+                content.innerHTML = `<div class="mt-20 text-gray-600 font-game uppercase tracking-widest animate-pulse">Coming Soon</div>`;
             }
         }
 
         function handleTap(e) {
-            state.balance += 1;
-            updateBalance();
-            tg.HapticFeedback.impactOccurred('medium');
+            if (game.energy <= 0) {
+                tg.HapticFeedback.notificationOccurred('error');
+                return;
+            }
+
+            const touch = e.touches[0];
+            game.balance += game.tapValue;
+            game.energy -= 1;
             
-            // تأثير خروج العملة
-            const coin = document.createElement('div');
-            coin.className = 'coin-pop';
-            coin.innerText = '+1';
-            coin.style.left = `${e.clientX}px`;
-            coin.style.top = `${e.clientY}px`;
-            document.body.appendChild(coin);
-            setTimeout(() => coin.remove(), 800);
+            updateUI();
+            createFloatingText(touch.clientX, touch.clientY);
+            tg.HapticFeedback.impactOccurred('medium');
         }
 
-        function buyWarrior(id) {
-            const w = warriorsData.find(x => x.id === id);
-            if (state.balance >= w.price) {
-                state.balance -= w.price;
-                state.income += w.income / 10;
-                updateBalance();
-                tg.showConfirm(`تم تجنيد ${w.name}! جيشك أصبح أقوى.`);
-                render();
+        function createFloatingText(x, y) {
+            const el = document.createElement('div');
+            el.className = 'floating-text';
+            el.innerText = `+${game.tapValue}`;
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 700);
+        }
+
+        function buyUpgrade(id) {
+            const w = warriors.find(x => x.id === id);
+            if (game.balance >= w.price) {
+                game.balance -= w.price;
+                game.passiveIncome += w.income;
+                tg.HapticFeedback.notificationOccurred('success');
+                router('fighters');
+                updateUI();
             } else {
-                tg.showAlert("الذهب غير كافٍ!");
+                tg.showAlert("Not enough gold, Warrior!");
             }
         }
 
-        function updateBalance() {
-            document.getElementById('balance').innerText = Math.floor(state.balance).toLocaleString();
+        function updateUI() {
+            document.getElementById('balance').innerText = Math.floor(game.balance).toLocaleString();
+            document.getElementById('energy-text').innerText = `${game.energy}/${game.maxEnergy}`;
+            document.getElementById('energy-bar').style.width = `${(game.energy / game.maxEnergy) * 100}%`;
         }
 
-        // تحديث الرصيد تلقائياً (Passive Income)
+        // Loops
         setInterval(() => {
-            state.balance += state.income;
-            updateBalance();
-        }, 1000);
+            // Passive Income
+            game.balance += (game.passiveIncome / 10);
+            
+            // Energy Regen
+            if (game.energy < game.maxEnergy) {
+                game.energy += 1;
+            }
+            updateUI();
+        }, 100);
 
-        // إعداد البداية
-        document.getElementById('user-name').innerText = tg.initDataUnsafe.user?.first_name || "المحارب";
-        changeTab('home');
+        // Init
+        router('home');
     </script>
 </body>
 </html>
